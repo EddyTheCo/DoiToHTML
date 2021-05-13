@@ -1,0 +1,94 @@
+
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script type = "text/javascript">
+
+	var HtmlCode = "";
+function copyToClip() {
+  /* Get the text field */
+  var copyText = document.getElementById("TheHtml");
+
+  /* Select the text field */
+  copyText.select();
+  copyText.setSelectionRange(0, 99999); /* For mobile devices */
+
+  /* Copy the text inside the text field */
+  document.execCommand("copy");
+
+  /* Alert the copied text */
+  alert("Copied the text");
+}
+function gethtml(response)
+{	var authors="";
+	for (const author of response.author) {authors=authors+author.family+" "+author.given.charAt(0)+"., "    }
+	authors = authors.substring(0, authors.length - 2);
+	var link=response.URL
+	var titles="";
+	for (const title of response.title) {titles=titles+title}
+
+	var Journals="";
+        for (const  journal of response['short-container-title']) {Journals=Journals+journal}
+	var volume=response.volume;
+	var page="";
+	if(response.page)
+	{
+		page=response.page
+	}
+	else
+	{
+		page=response['article-number']
+	}
+	var year=response['published-online']['date-parts'][0];
+	
+	
+
+	HtmlCode=HtmlCode+"<p>"+authors+"</p><p><a href='"+link+"' target='_blank'> "+titles+"</a></p><p>"+Journals+" <strong>"+volume+"</strong>, "+page+", ("+year[0]+")</p><p></p>";
+}
+	function getArticleHtml(doi)
+{
+	axios.get("https://api.crossref.org/works/"+doi)
+  .then(function (response) {
+    // handle success
+  gethtml(response.data.message);
+
+  })
+  .catch(function (error) {
+    // handle error
+  	console.log(error);
+  }).then(function () {
+	  document.getElementById('TheHtml').value=HtmlCode;
+        document.getElementById("htmlexample").innerHTML=HtmlCode;
+  });
+
+	
+
+}
+	function DoiToString(DoiString)
+{
+	HtmlCode = "";
+	var DoiArray = DoiString.split(',');
+
+	DoiArray.forEach(getArticleHtml);
+
+}
+</script>
+<html>
+  <head>
+    <title>DOI to reference</title>
+  </head>
+  <body>
+	  <div style="float:left;width:50%" id="left">
+	  <br>
+		<textarea name="TheDois" id="TheDois" cols="50" rows="20" placeholder="Enter the coma separated DOIs ex:
+https://doi.org/10.1088/1367-2630/abeb47,https://doi.org/10.1103/PhysRevB.103.155301,https://doi.org/10.1038/s41524-021-00508-6"></textarea>
+	 <button type="button" onclick="DoiToString(document.getElementById('TheDois').value)">GetTheHTMLCode</button> 
+	 <br>
+	 </br>
+
+	 <textarea name="TheHtml" id="TheHtml" cols="50" rows="20" ></textarea>
+	 <button type="button" onclick="copyToClip()">Copy</button>
+
+	</div>	
+	  <div id="htmlexample" style="float:left;width:50%">
+		  </div>
+  </body>
+</html>
